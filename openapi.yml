@@ -1,0 +1,151 @@
+openapi: 3.0.0
+info:
+  description: Test task service manager 
+  version: "0.0.1"
+  title: Service manager- openapi 3.0.0
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  /:
+    get:
+      summary: Get list of running services 
+      operationId: getServices
+      responses:
+        '200':
+          description: Services  list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+        '500':
+          description: Internal server error
+    post:
+      summary: Start new service 
+      operationId: startService
+      responses:
+        '201':
+          description: Service started
+          
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Service'
+        '400':
+          description: Invalid input
+        '409':
+          description: Item already exists
+        '500':
+          description: Internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Command'
+        description: Client data
+  '/{id}':
+    get:
+      summary: Get service status and outputs 
+      operationId: getServiceStatus
+      parameters:
+        - in: path
+          name: id
+          description: Service pid
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Item
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ServiceDetail'
+        '404':
+          description: Service not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Terminate service 
+      operationId: terminateService
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: service  pid to terminate 
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: service terminated 
+        '400':
+          description: Invalid input
+        '404':
+          description: Item not found
+        '500':
+          description: Internal server error
+  /spec:
+    get:
+      summary: Get OpenAPI 3.0.0 spec for the service
+      operationId: getSpec
+      responses:
+        '200':
+          description: Service Specification
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+servers:
+  - url: 'htts://localhost:8080'
+components:
+  requestBodies:
+    Service:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Service'
+      description: Item data
+  schemas:
+    Service:
+      required:
+        - PID
+      properties:
+        PID:
+          type: integer
+        commandName:
+          type: string
+        startTime:
+          type: string
+      type: object
+    Command:
+      required: 
+        - command
+      properties:
+        command:
+          type: string
+        args:
+          type: string 
+    ServiceDetail:
+      properties:
+        PID:
+          type: integer
+        command:
+          type: string
+        stdout:
+          type: array
+          items:
+            type: string
+        stderr:
+          type: array
+          items:
+            type: string
+        
+      
