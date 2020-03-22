@@ -10,7 +10,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"servicemanager/model"
 )
 
 type Route struct {
@@ -37,7 +39,15 @@ func InitEngine() *gin.Engine {
 }
 
 func LocalStore() gin.HandlerFunc {
-	dbContext := db.New()
+	dbContext := make(map[int]*model.Service)
+
+	// run inti command
+	if s, err := model.StartCommand("cmd", "/C", "dir"); err != nil {
+		log.Printf("Error run init command %v\n ", err)
+	} else {
+		dbContext[s.PID] = s
+	}
+
 	return func(c *gin.Context) {
 		c.Set("DB", dbContext)
 		c.Next()

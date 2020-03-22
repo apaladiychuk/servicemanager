@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  description: Test task service manager 
+  description: Test task service manager
   version: "0.0.1"
   title: Service manager- openapi 3.0.0
   license:
@@ -9,7 +9,7 @@ info:
 paths:
   /:
     get:
-      summary: Get list of running services 
+      summary: Get list of running services
       operationId: getServices
       responses:
         '200':
@@ -20,15 +20,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Service'
-        '500':
-          description: Internal server error
+        '406':
+          description: Unacceptable request
     post:
-      summary: Start new service 
+      summary: Start new service
       operationId: startService
       responses:
         '201':
           description: Service started
-          
+
           content:
             application/json:
               schema:
@@ -36,9 +36,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Service'
         '400':
-          description: Invalid input
-        '409':
-          description: Item already exists
+          description: Invalid parameters
+        '406':
+          description: Run command error
         '500':
           description: Internal server error
       requestBody:
@@ -49,7 +49,7 @@ paths:
         description: Client data
   '/{id}':
     get:
-      summary: Get service status and outputs 
+      summary: Get service status and outputs
       operationId: getServiceStatus
       parameters:
         - in: path
@@ -72,18 +72,18 @@ paths:
         '500':
           description: Internal server error
     delete:
-      summary: Terminate service 
+      summary: Terminate service
       operationId: terminateService
       parameters:
         - in: path
           name: id
           required: true
-          description: service  pid to terminate 
+          description: service  pid to terminate
           schema:
             type: integer
       responses:
         '204':
-          description: service terminated 
+          description: service terminated
         '400':
           description: Invalid input
         '404':
@@ -126,13 +126,15 @@ components:
           type: string
       type: object
     Command:
-      required: 
+      required:
         - command
       properties:
         command:
           type: string
         args:
-          type: string 
+          type: array
+          items:
+            type: string
     ServiceDetail:
       properties:
         PID:

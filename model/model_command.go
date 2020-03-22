@@ -9,7 +9,6 @@
 package model
 
 type Command struct {
-	Command string `json:"command"`
-
-	Args string `json:"args,omitempty"`
+	Command string   `json:"command"`
+	Args    []string `json:"args,omitempty"`
 }
