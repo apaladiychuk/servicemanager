@@ -9,9 +9,11 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"servicemanager/model"
+	"strconv"
 )
 
 type ResponseResult struct {
@@ -19,7 +21,19 @@ type ResponseResult struct {
 }
 
 func GetServiceStatus(c *gin.Context) {
-
+	var id int
+	var err error
+	if id, err = strconv.Atoi(c.Param("id")); err != nil {
+		c.SecureJSON(http.StatusBadRequest, ResponseResult{Detail: err.Error()})
+		return
+	}
+	db := c.Keys["DB"].(map[int]*model.Service)
+	if srv, ok := db[id]; ok {
+		c.SecureJSON(http.StatusOK, srv)
+	} else {
+		c.SecureJSON(http.StatusNotFound, ResponseResult{Detail: fmt.Sprintf("PID %d not found", id)})
+		return
+	}
 }
 
 func GetServices(c *gin.Context) {
@@ -62,5 +76,20 @@ func StartService(c *gin.Context) {
 }
 
 func TerminateService(c *gin.Context) {
+	var id int
+	var err error
+	if id, err = strconv.Atoi(c.Param("id")); err != nil {
+		c.SecureJSON(http.StatusBadRequest, ResponseResult{Detail: err.Error()})
+		return
+	}
+	db := c.Keys["DB"].(map[int]*model.Service)
+	if srv, ok := db[id]; ok {
+		srv.Cancel()
+		//delete(db, id)
+		c.SecureJSON(http.StatusNoContent, srv)
 
+	} else {
+		c.SecureJSON(http.StatusNotFound, ResponseResult{Detail: fmt.Sprintf("PID %d not found", id)})
+		return
+	}
 }
