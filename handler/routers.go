@@ -9,47 +9,58 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"servicemanager/model"
 )
 
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
-}
+type HandlerFunc func(c *gin.Context) error
 
-type Routes []Route
+//type Route struct {
+//	Name        string
+//	Method      string
+//	Pattern     string
+//	HandlerFunc http.HandlerFunc
+//}
+//
+//type Routes []Route
 
 func InitEngine() *gin.Engine {
 	router := gin.Default()
-
 	router.Use(gin.Recovery())
-	router.Use(LocalStore())
-
-	router.GET("/", GetServices)
-	router.POST("/", StartService)
-	router.GET("/:id", GetServiceStatus)
-	router.DELETE("/:id", TerminateService)
-
 	return router
 }
 
-func LocalStore() gin.HandlerFunc {
-	dbContext := make(map[int]*model.Service)
-
-	// run inti command
-	if s, err := model.StartCommand("cmd", "/C", "dir"); err != nil {
-		log.Printf("Error run init command %v\n ", err)
-	} else {
-		dbContext[s.PID] = s
-	}
-
+func HandlerErrorFunc(f HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("DB", dbContext)
-		c.Next()
+		err := f(c)
+		if err != nil {
+			if ew, ok := err.(model.Errors); ok {
+				c.JSON(int(ew.Code), model.ErrorResponse{
+					Status: int(ew.Code),
+					Error:  ew.Message,
+				})
+				if ew.Original != nil {
+					logrus.Error(ew.Original.Error())
+				}
+			} else {
+				c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+					Status: 500,
+					Error:  err.Error(),
+				})
+				logrus.Error(err.Error())
+			}
+		}
 	}
+}
+
+func SuccessResult(c *gin.Context, status int, data interface{}) error {
+	c.JSON(status, model.RestResponse{
+		Status: status,
+		Error:  "",
+		Data:   data,
+	})
+	return nil
 }

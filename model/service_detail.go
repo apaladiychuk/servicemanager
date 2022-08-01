@@ -10,10 +10,8 @@ package model
 
 // depricated
 type ServiceDetail struct {
-	PID int `json:"PID,omitempty"`
-
-	Command string `json:"command,omitempty"`
-
-	Stdout []string `json:"stdout,omitempty"`
-	Stderr []string `json:"stderr,omitempty"`
+	PID     int      `json:"PID,omitempty"`
+	Command string   `json:"command,omitempty"`
+	Stdout  []string `json:"stdout,omitempty"`
+	Stderr  []string `json:"stderr,omitempty"`
 }
